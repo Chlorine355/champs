@@ -1,0 +1,1590 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Царь горы — турнир чемпионов</title>
+    <meta name="description" content="Турнир на выбывание среди чемпионов League of Legends: выбирайте победителя в каждой паре, пока не останется один.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #05070d;
+            --bg-elev: #0b1020;
+            --panel: rgba(11, 17, 31, 0.82);
+            --gold: #c8aa6e;
+            --gold-bright: #f0e6d2;
+            --gold-deep: #785a28;
+            --teal: #0ac8b9;
+            --blue: #3a6ea5;
+            --text: #eae4d6;
+            --muted: #8b96a8;
+            --line: rgba(200, 170, 110, 0.22);
+            --shadow: 0 24px 80px rgba(0, 0, 0, 0.55);
+            color-scheme: dark;
+        }
+
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+        }
+
+        [hidden] {
+            display: none !important;
+        }
+
+        html {
+            min-height: 100%;
+        }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            color: var(--text);
+            font-family: "Manrope", system-ui, -apple-system, "Segoe UI", sans-serif;
+            background:
+                radial-gradient(1100px 750px at 8% -12%, rgba(10, 200, 185, 0.13), transparent 62%),
+                radial-gradient(900px 700px at 94% 6%, rgba(200, 170, 110, 0.11), transparent 58%),
+                radial-gradient(900px 650px at 50% 112%, rgba(58, 110, 165, 0.16), transparent 62%),
+                var(--bg);
+            overflow-x: hidden;
+        }
+
+        body::before {
+            content: "";
+            position: fixed;
+            inset: 0;
+            z-index: 0;
+            pointer-events: none;
+            background-image:
+                linear-gradient(rgba(200, 170, 110, 0.045) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(200, 170, 110, 0.045) 1px, transparent 1px);
+            background-size: 68px 68px;
+            -webkit-mask-image: radial-gradient(circle at 50% 38%, #000 0%, transparent 74%);
+            mask-image: radial-gradient(circle at 50% 38%, #000 0%, transparent 74%);
+        }
+
+        body.modal-open {
+            overflow: hidden;
+        }
+
+        .app {
+            position: relative;
+            z-index: 1;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        /* ---------------------------------------------------------- header */
+
+        .site-header {
+            display: flex;
+            align-items: center;
+            gap: 28px;
+            width: 100%;
+            max-width: 1280px;
+            margin: 0 auto;
+            padding: 22px 28px 0;
+        }
+
+        .brand {
+            display: inline-flex;
+            align-items: center;
+            gap: 12px;
+            color: var(--gold);
+            text-decoration: none;
+            flex: 0 0 auto;
+        }
+
+        .brand-mark {
+            display: grid;
+            place-items: center;
+            width: 42px;
+            height: 42px;
+            border: 1px solid var(--line);
+            border-radius: 2px;
+            background: linear-gradient(160deg, rgba(200, 170, 110, 0.14), rgba(10, 200, 185, 0.05));
+            box-shadow: inset 0 0 18px rgba(200, 170, 110, 0.08);
+        }
+
+        .brand-mark svg {
+            width: 24px;
+            height: 24px;
+        }
+
+        .brand-text {
+            font-family: "Cinzel", Georgia, serif;
+            font-size: 0.95rem;
+            font-weight: 600;
+            letter-spacing: 0.28em;
+        }
+
+        .progress-panel {
+            flex: 1 1 auto;
+            max-width: 660px;
+            margin-left: auto;
+            padding: 14px 20px 13px;
+            border: 1px solid var(--line);
+            border-radius: 2px;
+            background:
+                linear-gradient(180deg, rgba(200, 170, 110, 0.06), transparent 60%),
+                var(--panel);
+            box-shadow:
+                inset 0 1px 0 rgba(240, 230, 210, 0.06),
+                0 12px 40px rgba(0, 0, 0, 0.35);
+        }
+
+        .progress-top,
+        .progress-bottom {
+            display: flex;
+            align-items: baseline;
+            justify-content: space-between;
+            gap: 16px;
+        }
+
+        .progress-top {
+            margin-bottom: 9px;
+        }
+
+        .progress-round {
+            font-family: "Cinzel", Georgia, serif;
+            font-size: 0.78rem;
+            font-weight: 600;
+            letter-spacing: 0.18em;
+            text-transform: uppercase;
+            color: var(--gold);
+        }
+
+        .progress-remaining {
+            font-size: 0.8rem;
+            font-weight: 600;
+            letter-spacing: 0.02em;
+            color: var(--gold-bright);
+            white-space: nowrap;
+        }
+
+        .progress-track {
+            position: relative;
+            height: 8px;
+            border: 1px solid rgba(200, 170, 110, 0.24);
+            border-radius: 1px;
+            background: rgba(4, 7, 13, 0.75);
+            overflow: hidden;
+        }
+
+        .progress-track::after {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background-image: linear-gradient(90deg, transparent 90%, rgba(240, 230, 210, 0.14) 90%);
+            background-size: 10% 100%;
+            pointer-events: none;
+        }
+
+        .progress-fill {
+            height: 100%;
+            width: 100%;
+            background: linear-gradient(90deg, #0aa39a, var(--teal) 32%, var(--gold) 78%, #e4cf9a);
+            box-shadow: 0 0 14px rgba(10, 200, 185, 0.45);
+            transition: width 0.55s cubic-bezier(0.2, 0.8, 0.2, 1);
+        }
+
+        .progress-bottom {
+            margin-top: 8px;
+            font-size: 0.72rem;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            color: var(--muted);
+        }
+
+        /* ---------------------------------------------------------- layout */
+
+        main {
+            flex: 1 1 auto;
+            width: 100%;
+            max-width: 1280px;
+            margin: 0 auto;
+            padding: 26px 28px 40px;
+        }
+
+        .screen {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 100%;
+        }
+
+        /* ------------------------------------------------------ start screen */
+
+        .start-screen {
+            justify-content: center;
+            min-height: min(72vh, 760px);
+            text-align: center;
+            animation: rise 0.6s ease both;
+        }
+
+        .eyebrow {
+            margin: 0 0 20px;
+            font-size: 0.72rem;
+            font-weight: 600;
+            letter-spacing: 0.42em;
+            text-transform: uppercase;
+            color: var(--gold);
+        }
+
+        .start-title {
+            margin: 0;
+            font-family: "Cinzel", Georgia, serif;
+            font-size: clamp(3.2rem, 10vw, 7.4rem);
+            font-weight: 700;
+            line-height: 0.95;
+            letter-spacing: 0.09em;
+            background: linear-gradient(180deg, #f7efdd 4%, #e2cc94 38%, #c8aa6e 62%, #8d6c33 100%);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            filter: drop-shadow(0 12px 40px rgba(200, 170, 110, 0.18));
+        }
+
+        .title-rule {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 14px;
+            width: min(420px, 76vw);
+            margin: 26px auto 24px;
+            color: var(--gold);
+        }
+
+        .title-rule::before,
+        .title-rule::after {
+            content: "";
+            flex: 1;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(200, 170, 110, 0.6));
+        }
+
+        .title-rule::after {
+            background: linear-gradient(90deg, rgba(200, 170, 110, 0.6), transparent);
+        }
+
+        .title-rule span {
+            width: 7px;
+            height: 7px;
+            transform: rotate(45deg);
+            border: 1px solid currentColor;
+            box-shadow: 0 0 10px rgba(200, 170, 110, 0.5);
+        }
+
+        .lead {
+            max-width: 620px;
+            margin: 0 0 30px;
+            font-size: clamp(0.98rem, 1.5vw, 1.12rem);
+            line-height: 1.75;
+            color: #b4bccb;
+        }
+
+        .start-chips {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 36px;
+        }
+
+        .chip {
+            padding: 8px 15px;
+            border: 1px solid rgba(200, 170, 110, 0.22);
+            border-radius: 1px;
+            background: rgba(200, 170, 110, 0.05);
+            font-size: 0.72rem;
+            font-weight: 600;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            color: #c7c0b0;
+        }
+
+        .primary-button {
+            position: relative;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 230px;
+            padding: 17px 44px;
+            border: 0;
+            border-radius: 1px;
+            background: linear-gradient(180deg, #e4cf9a 0%, #c8aa6e 48%, #9a7a3d 100%);
+            box-shadow:
+                inset 0 1px 0 rgba(255, 255, 255, 0.4),
+                inset 0 -1px 0 rgba(0, 0, 0, 0.35),
+                0 14px 40px rgba(200, 170, 110, 0.22);
+            color: #0a0d13;
+            font-family: "Cinzel", Georgia, serif;
+            font-size: 0.88rem;
+            font-weight: 700;
+            letter-spacing: 0.2em;
+            text-transform: uppercase;
+            cursor: pointer;
+            clip-path: polygon(12px 0, 100% 0, 100% calc(100% - 12px), calc(100% - 12px) 100%, 0 100%, 0 12px);
+            transition: transform 0.18s ease, box-shadow 0.18s ease, filter 0.18s ease;
+        }
+
+        .primary-button:hover:not(:disabled) {
+            transform: translateY(-2px);
+            filter: brightness(1.06);
+            box-shadow:
+                inset 0 1px 0 rgba(255, 255, 255, 0.45),
+                inset 0 -1px 0 rgba(0, 0, 0, 0.35),
+                0 18px 52px rgba(200, 170, 110, 0.32);
+        }
+
+        .primary-button:active:not(:disabled) {
+            transform: translateY(0);
+        }
+
+        .primary-button:focus-visible {
+            outline: 2px solid var(--teal);
+            outline-offset: 4px;
+        }
+
+        .primary-button:disabled {
+            cursor: not-allowed;
+            filter: grayscale(0.7) brightness(0.7);
+        }
+
+        .start-note {
+            margin: 26px 0 0;
+            font-size: 0.74rem;
+            letter-spacing: 0.08em;
+            color: #6f7a8b;
+        }
+
+        /* ------------------------------------------------------- game screen */
+
+        .game-screen {
+            gap: 20px;
+            padding-top: 8px;
+            animation: rise 0.45s ease both;
+        }
+
+        .game-heading {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 7px;
+            text-align: center;
+        }
+
+        .game-title {
+            margin: 0;
+            font-family: "Cinzel", Georgia, serif;
+            font-size: clamp(1.15rem, 2.4vw, 1.6rem);
+            font-weight: 600;
+            letter-spacing: 0.22em;
+            color: var(--gold-bright);
+        }
+
+        .game-subtitle {
+            margin: 0;
+            font-size: 0.78rem;
+            letter-spacing: 0.14em;
+            text-transform: uppercase;
+            color: #7d8798;
+        }
+
+        .duel {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+            align-items: stretch;
+            gap: clamp(16px, 4vw, 46px);
+            width: 100%;
+            max-width: 1080px;
+        }
+
+        .champion-card {
+            position: relative;
+            width: 100%;
+            min-width: 0;
+            aspect-ratio: 3 / 4;
+            max-height: min(62vh, 600px);
+            padding: 0;
+            border: 1px solid rgba(200, 170, 110, 0.24);
+            border-radius: 2px;
+            background: #070b14;
+            box-shadow: 0 18px 50px rgba(0, 0, 0, 0.45);
+            overflow: hidden;
+            cursor: pointer;
+            user-select: none;
+            transition:
+                transform 0.25s ease,
+                border-color 0.25s ease,
+                box-shadow 0.25s ease,
+                opacity 0.3s ease,
+                filter 0.3s ease;
+        }
+
+        .champion-card::after {
+            content: "";
+            position: absolute;
+            inset: 0;
+            z-index: 1;
+            pointer-events: none;
+            background:
+                linear-gradient(180deg, rgba(4, 7, 15, 0.22) 0%, transparent 26%),
+                linear-gradient(180deg, transparent 52%, rgba(4, 7, 15, 0.68) 78%, rgba(4, 7, 15, 0.97) 100%);
+        }
+
+        .champion-card:hover {
+            transform: translateY(-6px);
+            border-color: rgba(200, 170, 110, 0.7);
+            box-shadow:
+                0 26px 70px rgba(0, 0, 0, 0.6),
+                0 0 44px rgba(200, 170, 110, 0.12);
+        }
+
+        .champion-card:hover .card-img {
+            transform: scale(1.045);
+        }
+
+        .champion-card:focus-visible {
+            outline: none;
+            border-color: var(--teal);
+            box-shadow:
+                0 0 0 2px rgba(10, 200, 185, 0.75),
+                0 0 50px rgba(10, 200, 185, 0.2);
+        }
+
+        .champion-card.is-winner {
+            transform: translateY(-4px) scale(1.02);
+            border-color: var(--gold);
+            box-shadow:
+                0 0 0 2px rgba(200, 170, 110, 0.9),
+                0 0 70px rgba(200, 170, 110, 0.36),
+                0 26px 70px rgba(0, 0, 0, 0.55);
+            z-index: 2;
+        }
+
+        .champion-card.is-winner::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            z-index: 2;
+            pointer-events: none;
+            background: radial-gradient(circle at 50% 55%, rgba(240, 230, 210, 0.22), transparent 62%);
+            animation: winner-flash 0.55s ease both;
+        }
+
+        .champion-card.is-loser {
+            opacity: 0.34;
+            filter: grayscale(0.85) brightness(0.62);
+            transform: scale(0.975);
+        }
+
+        .card-media {
+            position: absolute;
+            inset: 0;
+            background:
+                radial-gradient(circle at 50% 30%, rgba(58, 110, 165, 0.28), transparent 68%),
+                linear-gradient(160deg, #101a2e, #070b14);
+        }
+
+        .card-img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            object-position: center 18%;
+            display: block;
+            transition: transform 0.7s cubic-bezier(0.2, 0.8, 0.2, 1);
+        }
+
+        .card-img.is-broken {
+            opacity: 0;
+        }
+
+        .card-index {
+            position: absolute;
+            top: 16px;
+            left: 18px;
+            z-index: 3;
+            font-family: "Cinzel", Georgia, serif;
+            font-size: 0.72rem;
+            font-weight: 600;
+            letter-spacing: 0.24em;
+            color: rgba(240, 230, 210, 0.55);
+            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.8);
+        }
+
+        .card-corner {
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            z-index: 3;
+            width: 26px;
+            height: 26px;
+            border-top: 1px solid rgba(200, 170, 110, 0.55);
+            border-right: 1px solid rgba(200, 170, 110, 0.55);
+            opacity: 0.7;
+            transition: opacity 0.25s ease;
+        }
+
+        .champion-card:hover .card-corner {
+            opacity: 1;
+        }
+
+        .card-footer {
+            position: absolute;
+            right: 0;
+            bottom: 0;
+            left: 0;
+            z-index: 3;
+            display: flex;
+            align-items: center;
+            padding: 18px 70px 20px 22px;
+        }
+
+        .card-name {
+            margin: 0;
+            min-width: 0;
+            font-family: "Cinzel", Georgia, serif;
+            font-size: clamp(1.05rem, 1.9vw, 1.55rem);
+            font-weight: 600;
+            line-height: 1.12;
+            letter-spacing: 0.1em;
+            color: var(--gold-bright);
+            text-shadow: 0 2px 16px rgba(0, 0, 0, 0.75);
+            overflow-wrap: anywhere;
+        }
+
+        .info-button {
+            position: absolute;
+            right: 16px;
+            bottom: 16px;
+            z-index: 4;
+            display: grid;
+            place-items: center;
+            width: 38px;
+            height: 38px;
+            padding: 0;
+            border: 1px solid rgba(240, 230, 210, 0.42);
+            border-radius: 50%;
+            background: rgba(5, 8, 15, 0.58);
+            color: var(--gold-bright);
+            font-family: Georgia, "Times New Roman", serif;
+            font-size: 1rem;
+            font-style: italic;
+            font-weight: 700;
+            line-height: 1;
+            cursor: pointer;
+            transition: background 0.18s ease, color 0.18s ease, border-color 0.18s ease, transform 0.18s ease;
+        }
+
+        .info-button:hover {
+            background: var(--gold);
+            border-color: var(--gold-bright);
+            color: #0a0d13;
+            transform: scale(1.06);
+        }
+
+        .info-button:focus-visible {
+            outline: 2px solid var(--teal);
+            outline-offset: 3px;
+        }
+
+        .vs {
+            position: relative;
+            align-self: center;
+            display: grid;
+            place-items: center;
+            width: clamp(58px, 7vw, 82px);
+            aspect-ratio: 0.92;
+            clip-path: polygon(50% 0, 100% 25%, 100% 75%, 50% 100%, 0 75%, 0 25%);
+            background: linear-gradient(165deg, rgba(200, 170, 110, 0.95), rgba(120, 90, 40, 0.5) 48%, rgba(10, 200, 185, 0.5));
+            filter: drop-shadow(0 0 24px rgba(200, 170, 110, 0.18));
+        }
+
+        .vs::before {
+            content: "";
+            position: absolute;
+            inset: 2px;
+            clip-path: inherit;
+            background:
+                radial-gradient(circle at 50% 30%, rgba(200, 170, 110, 0.14), transparent 60%),
+                #070b14;
+        }
+
+        .vs span {
+            position: relative;
+            z-index: 1;
+            font-family: "Cinzel", Georgia, serif;
+            font-size: clamp(0.82rem, 1.4vw, 1.05rem);
+            font-weight: 700;
+            letter-spacing: 0.12em;
+            color: var(--gold);
+            text-shadow: 0 0 18px rgba(200, 170, 110, 0.55);
+        }
+
+        .game-hint {
+            margin: 0;
+            text-align: center;
+            font-size: 0.86rem;
+            letter-spacing: 0.04em;
+            color: #8e98a9;
+        }
+
+        .bye-note {
+            margin: -12px 0 0;
+            text-align: center;
+            font-size: 0.74rem;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            color: #7f8b9e;
+        }
+
+        .bye-note strong {
+            color: var(--gold);
+            font-weight: 600;
+        }
+
+        /* ----------------------------------------------------- winner screen */
+
+        .winner-screen {
+            justify-content: center;
+            min-height: min(74vh, 780px);
+            text-align: center;
+            animation: rise 0.55s ease both;
+        }
+
+        .crown {
+            display: grid;
+            place-items: center;
+            width: 78px;
+            height: 78px;
+            margin-bottom: 14px;
+            border: 1px solid rgba(200, 170, 110, 0.4);
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(200, 170, 110, 0.16), rgba(200, 170, 110, 0.03) 65%);
+            box-shadow: 0 0 44px rgba(200, 170, 110, 0.2);
+            color: var(--gold-bright);
+        }
+
+        .crown svg {
+            width: 38px;
+            height: 38px;
+            filter: drop-shadow(0 0 10px rgba(200, 170, 110, 0.55));
+        }
+
+        .winner-title {
+            margin: 0 0 30px;
+            font-family: "Cinzel", Georgia, serif;
+            font-size: clamp(1.6rem, 4vw, 2.6rem);
+            font-weight: 700;
+            letter-spacing: 0.24em;
+            background: linear-gradient(180deg, #f7efdd, #c8aa6e 60%, #8d6c33);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+
+        .winner-card {
+            display: grid;
+            grid-template-columns: minmax(220px, 340px) minmax(0, 560px);
+            align-items: stretch;
+            gap: clamp(22px, 4vw, 46px);
+            width: 100%;
+            max-width: 960px;
+            margin-bottom: 36px;
+            text-align: left;
+        }
+
+        .winner-portrait {
+            position: relative;
+            aspect-ratio: 3 / 4;
+            border: 1px solid rgba(200, 170, 110, 0.5);
+            border-radius: 2px;
+            background: #070b14;
+            overflow: hidden;
+            box-shadow:
+                0 0 0 1px rgba(200, 170, 110, 0.12),
+                0 26px 80px rgba(0, 0, 0, 0.6),
+                0 0 70px rgba(200, 170, 110, 0.16);
+        }
+
+        .winner-portrait::after {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(180deg, transparent 55%, rgba(5, 7, 13, 0.75));
+        }
+
+        .winner-portrait img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            object-position: center 18%;
+            display: block;
+        }
+
+        .winner-info {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            padding: clamp(4px, 1vw, 12px) 0;
+        }
+
+        .winner-name {
+            margin: 0;
+            font-family: "Cinzel", Georgia, serif;
+            font-size: clamp(2.2rem, 5.5vw, 4rem);
+            font-weight: 700;
+            line-height: 1;
+            letter-spacing: 0.06em;
+            background: linear-gradient(180deg, #f7efdd, #e2cc94 45%, #c8aa6e 75%, #8d6c33);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            filter: drop-shadow(0 10px 34px rgba(200, 170, 110, 0.16));
+            overflow-wrap: anywhere;
+        }
+
+        .winner-subtitle {
+            margin: 12px 0 22px;
+            font-family: "Cinzel", Georgia, serif;
+            font-size: clamp(0.82rem, 1.4vw, 1rem);
+            letter-spacing: 0.2em;
+            text-transform: uppercase;
+            color: var(--gold);
+        }
+
+        .winner-description {
+            margin: 0;
+            font-size: 0.96rem;
+            line-height: 1.8;
+            color: #c2c9d5;
+        }
+
+        /* -------------------------------------------------------------- modal */
+
+        .modal {
+            position: fixed;
+            inset: 0;
+            z-index: 50;
+            display: grid;
+            place-items: center;
+            padding: 24px;
+            opacity: 0;
+            transition: opacity 0.18s ease;
+        }
+
+        .modal.is-open {
+            opacity: 1;
+        }
+
+        .modal-backdrop {
+            position: absolute;
+            inset: 0;
+            background: rgba(2, 4, 9, 0.8);
+            -webkit-backdrop-filter: blur(7px);
+            backdrop-filter: blur(7px);
+        }
+
+        .modal-card {
+            position: relative;
+            z-index: 1;
+            display: grid;
+            grid-template-columns: minmax(220px, 320px) minmax(0, 1fr);
+            width: min(900px, 100%);
+            max-height: min(84vh, 720px);
+            border: 1px solid rgba(200, 170, 110, 0.4);
+            border-radius: 2px;
+            background:
+                linear-gradient(180deg, rgba(200, 170, 110, 0.05), transparent 55%),
+                linear-gradient(180deg, #0d1424, #080c16);
+            box-shadow:
+                var(--shadow),
+                0 0 90px rgba(10, 200, 185, 0.07);
+            overflow: auto;
+            transform: translateY(14px) scale(0.985);
+            transition: transform 0.2s ease;
+        }
+
+        .modal.is-open .modal-card {
+            transform: none;
+        }
+
+        .modal-image-wrap {
+            position: relative;
+            min-height: 100%;
+            background:
+                radial-gradient(circle at 50% 30%, rgba(58, 110, 165, 0.28), transparent 68%),
+                linear-gradient(160deg, #101a2e, #070b14);
+        }
+
+        .modal-image {
+            width: 100%;
+            height: 100%;
+            min-height: 260px;
+            object-fit: cover;
+            object-position: center 18%;
+            display: block;
+        }
+
+        .modal-image.is-broken {
+            opacity: 0;
+        }
+
+        .modal-body {
+            padding: clamp(26px, 4vw, 46px);
+        }
+
+        .modal-eyebrow {
+            margin: 0 0 10px;
+            font-size: 0.68rem;
+            font-weight: 600;
+            letter-spacing: 0.32em;
+            text-transform: uppercase;
+            color: var(--gold);
+        }
+
+        .modal-name {
+            margin: 0;
+            font-family: "Cinzel", Georgia, serif;
+            font-size: clamp(1.6rem, 3.4vw, 2.4rem);
+            font-weight: 700;
+            line-height: 1.05;
+            letter-spacing: 0.05em;
+            color: var(--gold-bright);
+            overflow-wrap: anywhere;
+        }
+
+        .modal-subtitle {
+            margin: 9px 0 22px;
+            font-family: "Cinzel", Georgia, serif;
+            font-size: 0.8rem;
+            letter-spacing: 0.16em;
+            text-transform: uppercase;
+            color: var(--gold);
+        }
+
+        .modal-description {
+            margin: 0;
+            font-size: 0.95rem;
+            line-height: 1.8;
+            color: #c2c9d5;
+        }
+
+        .modal-close {
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            z-index: 3;
+            display: grid;
+            place-items: center;
+            width: 38px;
+            height: 38px;
+            padding: 0;
+            border: 1px solid rgba(240, 230, 210, 0.35);
+            border-radius: 50%;
+            background: rgba(5, 8, 15, 0.72);
+            color: var(--gold-bright);
+            font-size: 1.4rem;
+            line-height: 1;
+            cursor: pointer;
+            transition: background 0.18s ease, color 0.18s ease, border-color 0.18s ease;
+        }
+
+        .modal-close:hover {
+            background: var(--gold);
+            border-color: var(--gold-bright);
+            color: #0a0d13;
+        }
+
+        .modal-close:focus-visible {
+            outline: 2px solid var(--teal);
+            outline-offset: 3px;
+        }
+
+        /* -------------------------------------------------------------- footer */
+
+        .site-footer {
+            padding: 0 28px 26px;
+            text-align: center;
+            font-size: 0.72rem;
+            letter-spacing: 0.05em;
+            color: #616b7c;
+        }
+
+        .site-footer a {
+            color: #8f99aa;
+            text-decoration: none;
+            border-bottom: 1px solid rgba(143, 153, 170, 0.35);
+        }
+
+        .site-footer a:hover {
+            color: var(--gold);
+            border-color: var(--gold);
+        }
+
+        /* -------------------------------------------------------------- motion */
+
+        @keyframes rise {
+            from {
+                opacity: 0;
+                transform: translateY(14px);
+            }
+            to {
+                opacity: 1;
+                transform: none;
+            }
+        }
+
+        @keyframes winner-flash {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+
+        /* ------------------------------------------------------------ responsive */
+
+        @media (max-width: 900px) {
+            .winner-card {
+                grid-template-columns: minmax(180px, 260px) minmax(0, 1fr);
+            }
+        }
+
+        @media (max-width: 760px) {
+            .site-header {
+                flex-wrap: wrap;
+                gap: 16px;
+                padding: 18px 18px 0;
+            }
+
+            .progress-panel {
+                flex-basis: 100%;
+                max-width: none;
+                margin-left: 0;
+            }
+
+            main {
+                padding: 22px 18px 48px;
+            }
+
+            .start-screen {
+                min-height: 68vh;
+            }
+
+            .duel {
+                grid-template-columns: minmax(0, 1fr) 38px minmax(0, 1fr);
+                gap: 10px;
+                max-width: 560px;
+            }
+
+            .champion-card {
+                aspect-ratio: 3 / 4.4;
+                max-height: none;
+            }
+
+            .card-img {
+                object-position: center 20%;
+            }
+
+            .card-index {
+                top: 12px;
+                left: 12px;
+                font-size: 0.62rem;
+            }
+
+            .card-corner {
+                display: none;
+            }
+
+            .card-footer {
+                padding: 12px 10px 14px;
+            }
+
+            .card-name {
+                font-size: 0.8rem;
+                letter-spacing: 0.04em;
+                line-height: 1.2;
+            }
+
+            .info-button {
+                top: 9px;
+                right: 9px;
+                bottom: auto;
+                width: 30px;
+                height: 30px;
+                font-size: 0.85rem;
+            }
+
+            .vs {
+                width: 38px;
+                margin: 0 auto;
+            }
+
+            .vs span {
+                font-size: 0.66rem;
+            }
+
+            .winner-card {
+                grid-template-columns: minmax(0, 1fr);
+                gap: 24px;
+                text-align: center;
+            }
+
+            .winner-portrait {
+                width: min(260px, 70vw);
+                margin: 0 auto;
+            }
+
+            .winner-info {
+                text-align: center;
+            }
+
+            .modal {
+                padding: 14px;
+            }
+
+            .modal-card {
+                grid-template-columns: minmax(0, 1fr);
+                max-height: 90vh;
+            }
+
+            .modal-image-wrap {
+                max-height: 240px;
+                overflow: hidden;
+            }
+
+            .modal-image {
+                min-height: 0;
+                max-height: 240px;
+            }
+        }
+
+        @media (max-width: 420px) {
+            .brand-text {
+                letter-spacing: 0.2em;
+            }
+
+            .progress-remaining {
+                font-size: 0.72rem;
+            }
+
+            .progress-bottom {
+                font-size: 0.66rem;
+            }
+
+            .card-footer {
+                padding: 14px 14px 16px 16px;
+            }
+
+            .info-button {
+                width: 34px;
+                height: 34px;
+            }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            *,
+            *::before,
+            *::after {
+                animation-duration: 0.001ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: 0.001ms !important;
+                scroll-behavior: auto !important;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="app">
+        <header class="site-header">
+            <a class="brand" href="./tournament.html" aria-label="Царь горы — на главную">
+                <span class="brand-mark" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" fill="none">
+                        <path d="M3.5 8.5 8 11.6 12 5l4 6.6 4.5-3.1-1.9 10.1H5.4L3.5 8.5Z" stroke="currentColor" stroke-width="1.25" stroke-linejoin="round"/>
+                        <path d="M5.5 18.4h13" stroke="currentColor" stroke-width="1.25" stroke-linecap="round"/>
+                    </svg>
+                </span>
+                <span class="brand-text">ЦАРЬ ГОРЫ</span>
+            </a>
+
+            <div class="progress-panel" id="progressPanel" hidden>
+                <div class="progress-top">
+                    <span class="progress-round" id="roundLabel">Раунд 1</span>
+                    <span class="progress-remaining" id="remainingLabel">Осталось 173 чемпиона из 173</span>
+                </div>
+                <div class="progress-track" id="progressTrack" role="progressbar" aria-label="Сколько чемпионов осталось в выборе" aria-valuemin="0" aria-valuemax="173" aria-valuenow="173">
+                    <div class="progress-fill" id="progressBar"></div>
+                </div>
+                <div class="progress-bottom">
+                    <span id="pairLabel">Пара 1 / 86</span>
+                    <span id="progressPercent">100%</span>
+                </div>
+            </div>
+        </header>
+
+        <main>
+            <section class="screen start-screen" id="startScreen">
+                <p class="eyebrow">Турнир на выбывание</p>
+                <h1 class="start-title">ЦАРЬ ГОРЫ</h1>
+                <div class="title-rule" aria-hidden="true"><span></span></div>
+                <p class="lead" id="startLead">
+                    Случайные пары, один победитель в каждой. Выбирайте чемпиона, который
+                    пройдёт дальше, пока в турнире не останется только один.
+                </p>
+                <div class="start-chips">
+                    <span class="chip" id="totalChip">173 чемпиона</span>
+                    <span class="chip" id="roundsChip">8 раундов</span>
+                    <span class="chip">1 победитель</span>
+                </div>
+                <button class="primary-button" id="startButton" type="button">Начать турнир</button>
+                <p class="start-note">Прогресс не сохраняется — каждый запуск начинает новый турнир.</p>
+            </section>
+
+            <section class="screen game-screen" id="gameScreen" hidden>
+                <div class="game-heading">
+                    <h2 class="game-title">Кто пройдёт дальше?</h2>
+                    <p class="game-subtitle">Нажмите на карточку чемпиона</p>
+                </div>
+
+                <div class="duel">
+                    <article class="champion-card" id="cardLeft" tabindex="0" role="button" aria-label="Выбрать чемпиона">
+                        <div class="card-media">
+                            <img class="card-img" alt="" draggable="false">
+                        </div>
+                        <span class="card-index">01</span>
+                        <span class="card-corner" aria-hidden="true"></span>
+                        <button class="info-button" type="button" aria-label="Описание чемпиона">i</button>
+                        <div class="card-footer">
+                            <h3 class="card-name"></h3>
+                        </div>
+                    </article>
+
+                    <div class="vs" aria-hidden="true"><span>VS</span></div>
+
+                    <article class="champion-card" id="cardRight" tabindex="0" role="button" aria-label="Выбрать чемпиона">
+                        <div class="card-media">
+                            <img class="card-img" alt="" draggable="false">
+                        </div>
+                        <span class="card-index">02</span>
+                        <span class="card-corner" aria-hidden="true"></span>
+                        <button class="info-button" type="button" aria-label="Описание чемпиона">i</button>
+                        <div class="card-footer">
+                            <h3 class="card-name"></h3>
+                        </div>
+                    </article>
+                </div>
+
+                <p class="bye-note" id="byeNote" hidden></p>
+                <p class="game-hint">Победитель пары проходит в следующий раунд</p>
+            </section>
+
+            <section class="screen winner-screen" id="winnerScreen" hidden>
+                <p class="eyebrow">Победитель турнира</p>
+                <div class="crown" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" fill="none">
+                        <path d="M3 8l4 3 5-6 5 6 4-3-2 11H5L3 8z" stroke="currentColor" stroke-width="1.25" stroke-linejoin="round"/>
+                        <path d="M5 19h14" stroke="currentColor" stroke-width="1.25" stroke-linecap="round"/>
+                    </svg>
+                </div>
+                <h1 class="winner-title">ЦАРЬ ГОРЫ</h1>
+
+                <div class="winner-card">
+                    <div class="winner-portrait">
+                        <img id="winnerImage" alt="">
+                    </div>
+                    <div class="winner-info">
+                        <h2 class="winner-name" id="winnerName"></h2>
+                        <p class="winner-subtitle" id="winnerSubtitle"></p>
+                        <p class="winner-description" id="winnerDescription"></p>
+                    </div>
+                </div>
+
+                <button class="primary-button" id="restartButton" type="button">Сыграть ещё раз</button>
+            </section>
+        </main>
+
+        <footer class="site-footer">
+            Данные о чемпионах — <a href="https://www.leagueoflegends.com/ru-ru/champions/" target="_blank" rel="noopener noreferrer">leagueoflegends.com</a>.
+            League of Legends и все связанные материалы принадлежат Riot Games.
+        </footer>
+    </div>
+
+    <div class="modal" id="infoModal" hidden>
+        <div class="modal-backdrop" id="modalBackdrop"></div>
+        <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="modalName">
+            <button class="modal-close" id="modalClose" type="button" aria-label="Закрыть описание">&times;</button>
+            <div class="modal-image-wrap">
+                <img class="modal-image" id="modalImage" alt="">
+            </div>
+            <div class="modal-body">
+                <p class="modal-eyebrow">Чемпион League of Legends</p>
+                <h2 class="modal-name" id="modalName"></h2>
+                <p class="modal-subtitle" id="modalSubtitle"></p>
+                <p class="modal-description" id="modalDescription"></p>
+            </div>
+        </div>
+    </div>
+
+    <script src="./data.js"></script>
+    <script>
+        (() => {
+            'use strict';
+
+            const source = Array.isArray(globalThis.CHAMPIONS) ? globalThis.CHAMPIONS : [];
+            const champions = source.filter(
+                (champion) =>
+                    champion &&
+                    typeof champion.name === 'string' &&
+                    champion.name.length > 0 &&
+                    typeof champion.src === 'string' &&
+                    champion.src.length > 0
+            );
+
+            const els = {
+                startScreen: document.getElementById('startScreen'),
+                gameScreen: document.getElementById('gameScreen'),
+                winnerScreen: document.getElementById('winnerScreen'),
+                startLead: document.getElementById('startLead'),
+                startButton: document.getElementById('startButton'),
+                restartButton: document.getElementById('restartButton'),
+                totalChip: document.getElementById('totalChip'),
+                roundsChip: document.getElementById('roundsChip'),
+                progressPanel: document.getElementById('progressPanel'),
+                progressTrack: document.getElementById('progressTrack'),
+                progressBar: document.getElementById('progressBar'),
+                progressPercent: document.getElementById('progressPercent'),
+                roundLabel: document.getElementById('roundLabel'),
+                remainingLabel: document.getElementById('remainingLabel'),
+                pairLabel: document.getElementById('pairLabel'),
+                byeNote: document.getElementById('byeNote'),
+                cards: [document.getElementById('cardLeft'), document.getElementById('cardRight')],
+                winnerImage: document.getElementById('winnerImage'),
+                winnerName: document.getElementById('winnerName'),
+                winnerSubtitle: document.getElementById('winnerSubtitle'),
+                winnerDescription: document.getElementById('winnerDescription'),
+                modal: document.getElementById('infoModal'),
+                modalBackdrop: document.getElementById('modalBackdrop'),
+                modalClose: document.getElementById('modalClose'),
+                modalImage: document.getElementById('modalImage'),
+                modalName: document.getElementById('modalName'),
+                modalSubtitle: document.getElementById('modalSubtitle'),
+                modalDescription: document.getElementById('modalDescription'),
+            };
+
+            const cardEls = els.cards.map((root) => ({
+                root,
+                img: root.querySelector('.card-img'),
+                name: root.querySelector('.card-name'),
+                index: root.querySelector('.card-index'),
+                info: root.querySelector('.info-button'),
+                champion: null,
+            }));
+
+            const state = {
+                pool: [],
+                winners: [],
+                round: 1,
+                pairIndex: 0,
+                pairsInRound: 0,
+                bye: null,
+                remaining: 0,
+                total: champions.length,
+                currentPair: [],
+                busy: false,
+                timer: null,
+                started: false,
+            };
+
+            let lastFocused = null;
+
+            // ------------------------------------------------------- helpers
+
+            const plural = (n, one, few, many) => {
+                const mod10 = n % 10;
+                const mod100 = n % 100;
+                if (mod10 === 1 && mod100 !== 11) return one;
+                if (mod10 >= 2 && mod10 <= 4 && (mod100 < 12 || mod100 > 14)) return few;
+                return many;
+            };
+
+            const championWord = (n) => plural(n, 'чемпион', 'чемпиона', 'чемпионов');
+            const roundWord = (n) => plural(n, 'раунд', 'раунда', 'раундов');
+
+            const shuffle = (items) => {
+                for (let i = items.length - 1; i > 0; i -= 1) {
+                    const j = Math.floor(Math.random() * (i + 1));
+                    [items[i], items[j]] = [items[j], items[i]];
+                }
+                return items;
+            };
+
+            const setImage = (img, champion) => {
+                img.classList.remove('is-broken');
+                img.alt = champion.name;
+                img.onerror = () => img.classList.add('is-broken');
+                img.src = champion.src;
+            };
+
+            // ------------------------------------------------------- screens
+
+            const showScreen = (name) => {
+                els.startScreen.hidden = name !== 'start';
+                els.gameScreen.hidden = name !== 'game';
+                els.winnerScreen.hidden = name !== 'winner';
+                els.progressPanel.hidden = name === 'start';
+            };
+
+            // ------------------------------------------------------ progress
+
+            const updateProgress = () => {
+                const remaining = state.remaining;
+                const percent = state.total > 0 ? (remaining / state.total) * 100 : 0;
+
+                els.progressBar.style.width = `${percent}%`;
+                els.progressTrack.setAttribute('aria-valuenow', String(remaining));
+                els.progressTrack.setAttribute('aria-valuemax', String(state.total));
+                els.remainingLabel.textContent =
+                    `Осталось ${remaining} ${championWord(remaining)} из ${state.total}`;
+                els.roundLabel.textContent = `Раунд ${state.round}`;
+                els.progressPercent.textContent = `${Math.round(percent)}%`;
+            };
+
+            // --------------------------------------------------------- round
+
+            const renderCard = (card, champion, index) => {
+                card.champion = champion;
+                setImage(card.img, champion);
+                card.name.textContent = champion.name;
+                card.index.textContent = String(index).padStart(2, '0');
+                card.info.setAttribute('aria-label', `Описание: ${champion.name}`);
+                card.root.setAttribute('aria-label', `Выбрать чемпиона: ${champion.name}`);
+            };
+
+            const showPair = () => {
+                if (state.pairIndex >= state.pairsInRound) {
+                    finishRound();
+                    return;
+                }
+
+                const left = state.pool[state.pairIndex * 2];
+                const right = state.pool[state.pairIndex * 2 + 1];
+                state.currentPair = [left, right];
+
+                renderCard(cardEls[0], left, 1);
+                renderCard(cardEls[1], right, 2);
+
+                cardEls.forEach((card) => {
+                    card.root.classList.remove('is-winner', 'is-loser');
+                });
+
+                els.pairLabel.textContent = `Пара ${state.pairIndex + 1} / ${state.pairsInRound}`;
+                els.byeNote.hidden = !state.bye;
+                els.byeNote.innerHTML = state.bye
+                    ? 'Один чемпион проходит дальше <strong>без пары</strong>'
+                    : '';
+
+                updateProgress();
+            };
+
+            const finishRound = () => {
+                if (state.bye) {
+                    state.winners.push(state.bye);
+                    state.bye = null;
+                }
+
+                state.pool = state.winners.slice();
+
+                if (state.pool.length <= 1) {
+                    showWinner(state.pool[0] || null);
+                    return;
+                }
+
+                state.round += 1;
+                startRound();
+            };
+
+            const startRound = () => {
+                if (state.pool.length <= 1) {
+                    showWinner(state.pool[0] || null);
+                    return;
+                }
+
+                state.pool = shuffle(state.pool);
+                state.winners = [];
+                state.pairIndex = 0;
+                state.pairsInRound = Math.floor(state.pool.length / 2);
+                state.bye = state.pool.length % 2 === 1 ? state.pool[state.pool.length - 1] : null;
+                state.remaining = state.pool.length;
+
+                showPair();
+            };
+
+            const choose = (index) => {
+                if (state.busy || state.currentPair.length < 2) return;
+
+                const winnerCard = cardEls[index];
+                const loserCard = cardEls[1 - index];
+                if (!winnerCard.champion) return;
+
+                state.busy = true;
+                winnerCard.root.classList.add('is-winner');
+                loserCard.root.classList.add('is-loser');
+
+                state.winners.push(winnerCard.champion);
+                state.remaining = Math.max(1, state.remaining - 1);
+                updateProgress();
+
+                state.timer = setTimeout(() => {
+                    state.pairIndex += 1;
+                    state.busy = false;
+
+                    if (state.pairIndex >= state.pairsInRound) {
+                        finishRound();
+                    } else {
+                        showPair();
+                    }
+                }, 480);
+            };
+
+            // -------------------------------------------------------- winner
+
+            const showWinner = (champion) => {
+                if (!champion) {
+                    showScreen('start');
+                    return;
+                }
+
+                state.started = false;
+                state.remaining = 1;
+                updateProgress();
+
+                setImage(els.winnerImage, champion);
+                els.winnerName.textContent = champion.name;
+                els.winnerSubtitle.textContent = champion.subtitle || '';
+                els.winnerDescription.textContent = champion.description || '';
+
+                showScreen('winner');
+                document.getElementById('restartButton').focus({ preventScroll: true });
+            };
+
+            // ------------------------------------------------------ tournament
+
+            const startTournament = () => {
+                if (champions.length < 2) return;
+
+                clearTimeout(state.timer);
+                state.busy = false;
+                state.round = 1;
+                state.total = champions.length;
+                state.remaining = champions.length;
+                state.pool = shuffle(champions.slice());
+                state.winners = [];
+                state.pairIndex = 0;
+                state.currentPair = [];
+                state.started = true;
+
+                cardEls.forEach((card) => {
+                    card.root.classList.remove('is-winner', 'is-loser');
+                });
+
+                showScreen('game');
+                startRound();
+            };
+
+            // --------------------------------------------------------- modal
+
+            const openModal = (champion) => {
+                lastFocused = document.activeElement;
+
+                setImage(els.modalImage, champion);
+                els.modalName.textContent = champion.name;
+                els.modalSubtitle.textContent = champion.subtitle || 'Чемпион League of Legends';
+                els.modalDescription.textContent = champion.description || 'Описание пока недоступно.';
+
+                els.modal.hidden = false;
+                document.body.classList.add('modal-open');
+
+                requestAnimationFrame(() => {
+                    els.modal.classList.add('is-open');
+                });
+
+                els.modalClose.focus();
+            };
+
+            const closeModal = () => {
+                if (els.modal.hidden) return;
+
+                els.modal.classList.remove('is-open');
+                document.body.classList.remove('modal-open');
+
+                window.setTimeout(() => {
+                    els.modal.hidden = true;
+                    if (lastFocused && typeof lastFocused.focus === 'function') {
+                        lastFocused.focus({ preventScroll: true });
+                    }
+                }, 180);
+            };
+
+            // ------------------------------------------------------- listeners
+
+            cardEls.forEach((card, index) => {
+                card.root.addEventListener('click', () => choose(index));
+
+                card.root.addEventListener('keydown', (event) => {
+                    if (event.target !== card.root) return;
+                    if (event.key === 'Enter' || event.key === ' ') {
+                        event.preventDefault();
+                        choose(index);
+                    }
+                });
+
+                card.info.addEventListener('click', (event) => {
+                    event.stopPropagation();
+                    if (card.champion) openModal(card.champion);
+                });
+            });
+
+            els.startButton.addEventListener('click', startTournament);
+            els.restartButton.addEventListener('click', startTournament);
+
+            els.modalClose.addEventListener('click', closeModal);
+            els.modalBackdrop.addEventListener('click', closeModal);
+
+            els.modal.addEventListener('keydown', (event) => {
+                if (event.key === 'Tab') {
+                    event.preventDefault();
+                    els.modalClose.focus();
+                }
+            });
+
+            document.addEventListener('keydown', (event) => {
+                if (event.key === 'Escape') closeModal();
+            });
+
+            // ------------------------------------------------------------ init
+
+            if (champions.length < 2) {
+                els.startLead.textContent =
+                    'Не удалось загрузить список чемпионов. Проверьте, что рядом с этой страницей лежит data.js.';
+                els.startButton.disabled = true;
+                els.totalChip.textContent = '0 чемпионов';
+                els.roundsChip.textContent = '0 раундов';
+            } else {
+                const rounds = Math.ceil(Math.log2(champions.length));
+                els.totalChip.textContent = `${champions.length} ${championWord(champions.length)}`;
+                els.roundsChip.textContent = `${rounds} ${roundWord(rounds)}`;
+                els.progressTrack.setAttribute('aria-valuemax', String(champions.length));
+            }
+
+            showScreen('start');
+        })();
+    </script>
+</body>
+</html>
